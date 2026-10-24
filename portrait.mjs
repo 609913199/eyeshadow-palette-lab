@@ -1,4 +1,4 @@
-import {loadBytes} from './head-loader.mjs?v=6';
+import {loadHeadAsset} from './head-assets-loader.mjs?v=7';
 // Google MediaPipe multiclass selfie segmentation, bundled locally and run on CPU.
 // Labels: 0 background, 1 hair, 2 body skin, 3 face skin, 4 clothes, 5 accessories.
 let taskPromise;
@@ -7,9 +7,9 @@ async function task(onStatus,signal){
  if(!taskPromise){taskPromise=(async()=>{
   onStatus('准备本地 AI，首次加载可随时取消；照片不会上传。');
   const ort=await import('./ort.wasm.min.mjs');ort.env.wasm.numThreads=1;ort.env.wasm.initTimeout=20000;ort.env.wasm.wasmPaths=new URL('.',import.meta.url).href;
-  const wasm=await loadBytes(new URL('./ort-wasm-simd-threaded.wasm',import.meta.url),{label:'加载 AI 运行文件',onStatus,signal,totalHint:11210254});
+  const wasm=await loadHeadAsset('wasm',{onStatus,signal});
   ort.env.wasm.wasmBinary=wasm;
-  const model=await loadBytes(new URL('./head-segmentation-q8.onnx',import.meta.url),{label:'加载轻量大头模型',onStatus,signal,totalHint:4418696});
+  const model=await loadHeadAsset('model',{onStatus,signal});
   onStatus('文件已加载，正在初始化本地 AI…');
   const session=await ort.InferenceSession.create(model,{executionProviders:['wasm']});return{ort,session};
  })().catch(e=>{taskPromise=null;throw e;});}

@@ -1,4 +1,4 @@
-import {waveScreen} from './effects.mjs?v=6';
+import {waveScreen} from './effects.mjs?v=7';
 import * as THREE from './three.module.js';
 import {OrbitControls} from './OrbitControls.js';
 import {Reflector} from './Reflector.js';
@@ -76,8 +76,9 @@ $('#cutout').onclick=()=>{maskAsset=assets[slots[selected].asset];if(!maskAsset)
 function loadHeadClient(signal){return new Promise((resolve,reject)=>{
  const finish=(error,module)=>{clearTimeout(timer);signal.removeEventListener('abort',cancel);error?reject(error):resolve(module);};
  const cancel=()=>finish(new DOMException('已取消','AbortError')),timer=setTimeout(()=>finish(new Error('AI 程序连接超时，请重试或使用圈选。')),20000);signal.addEventListener('abort',cancel,{once:true});
- if(signal.aborted){cancel();return;}import('./head-client.mjs?v=6').then(module=>finish(null,module),()=>finish(new Error('AI 程序加载失败，请检查网络后重试。')));
+ if(signal.aborted){cancel();return;}import('./head-client.mjs?v=7').then(module=>finish(null,module),()=>finish(new Error('AI 程序加载失败，请检查网络后重试。')));
 });}
+$('#offlineAI').onchange=async e=>{const file=e.target.files[0];if(!file||cutBusy)return;$('#aiHead').disabled=true;try{cutStatus('正在校验离线 AI 包…');const {installOfflineAI}=await import('./head-assets-loader.mjs?v=7');await installOfflineAI(file,{onStatus:cutStatus});}catch(error){cutStatus(error.message||'离线安装失败，请重试。');}finally{$('#aiHead').disabled=false;e.target.value='';}};
 $('#cancelHead').onclick=()=>cutAbort?.abort();
 $('#cutDialog').addEventListener('close',()=>{cutSession++;cutAbort?.abort();});
 $('#aiHead').onclick=async()=>{
