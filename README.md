@@ -8,7 +8,7 @@
 
 所有运行依赖随源码打包，不依赖外部字体、CDN 或图像服务。照片只在浏览器内处理，刷新后会清空，可保存工程继续编辑。
 
-大头抠图使用 MediaPipe SelfieMulticlass 本地 CPU 模型，区分脸、头发、衣服与背景；支持圈选、擦除、恢复与撤销。首次需要下载约 27 MB 的本地模型及运行文件，不向模型服务上传照片。复杂发丝或遮挡需手工修补。波浪丝印采用随明暗改变粗细的弯曲斜线，不对五官整体扭曲。3D 需要 WebGL 支持。
+大头抠图使用 MediaPipe SelfieMulticlass 本地 CPU 模型，区分脸、头发、衣服与背景；支持圈选、擦除、恢复与撤销。模型在独立 Worker 中运行，加载显示进度；20 秒无下载数据会自动重试一次，整体处理最多 120 秒，支持随时取消。首次需要下载约 16 MB 的本地模型及运行文件，不向模型服务上传照片。复杂发丝或遮挡需手工修补。波浪丝印将斜向丝印线条变为周期性起伏的正弦波浪线，明暗控制线宽。3D 需要 WebGL 支持。
 
 ## 文件
 
@@ -20,3 +20,9 @@ Third-party Three.js components are distributed under the MIT License; see THIRD
 ## AI 依赖
 
 Google SelfieMulticlass 256×256 v1 模型采用 Apache 2.0 许可，参见 MEDIAPIPE_LICENSE.txt。ONNX 转换来源：https://huggingface.co/senty-au/selfie_multiclass_256x256-ONNX （保留 Google 原权重；模型 SHA256：35ec1ecd9ee7f85073c99c00020b7f6751b69506eeacf683bc8665f6117f85b0）。推理使用 ONNX Runtime Web 1.22.0 的 WASM CPU，采用 MIT 许可，见 ONNXRUNTIME_LICENSE.txt。运行文件与模型均由此仓库提供，无需访问外部 AI 服务。
+
+### 轻量模型
+
+head-segmentation-q8.onnx 由原模型逐通道 INT8 权重量化生成，使用 DequantizeLinear 保留浮点激活，约 4.3 MB。转换脚本为 quantize-head.py（依赖 onnx、numpy）。在本项目所用完整参考截图和头像裁切上的头部掩膜 IoU 相对原版约为 98.7%、97.9%，这不代表所有照片的准确率。首轮全图识别后，会裁切头部重新分割。
+
+运行示例：`python quantize-head.py head-segmentation.onnx head-segmentation-q8.onnx`

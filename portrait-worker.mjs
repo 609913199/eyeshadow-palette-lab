@@ -1,0 +1,2 @@
+import {extractHead} from './portrait.mjs?v=6';
+self.onmessage=async({data})=>{try{const result=await extractHead(data.image,{onStatus:text=>self.postMessage({status:text})});const base=result.base.transferToImageBitmap(),mask=result.mask.transferToImageBitmap();self.postMessage({base,mask},[base,mask]);}catch(e){self.postMessage({error:e.message||'大头识别失败，请重试或使用圈选。'});}finally{data.image.close();}};
